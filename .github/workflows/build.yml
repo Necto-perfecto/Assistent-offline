@@ -1,52 +1,35 @@
 name: Build APK
-
 on:
   push:
     branches: [ main, master, "основной" ]
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-
     - name: Get Date
       id: get-date
-      run: |
-        echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-
-    - name: Cache Buildozer global directory
+      run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+    - name: Cache Buildozer
       uses: actions/cache@v4
       with:
         path: ~/.buildozer
-        key: buildozer-global-${{ runner.os }}-${{ steps.get-date.outputs.date }}
-
-    - name: Cache Buildozer local directory
-      uses: actions/cache@v4
-      with:
-        path: .buildozer
-        key: buildozer-local-${{ runner.os }}-${{ steps.get-date.outputs.date }}
-
+        key: buildozer-${{ runner.os }}-${{ steps.get-date.outputs.date }}
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libsqlite3-dev lld bzip2 libbz2-dev libssl-dev libffi-dev libgdbm-dev libncursesw5-dev libreadline-dev libtk8.6 libgdbm-compat-dev liblzma-dev libgl1-mesa-dev
+        sudo apt-get install -y gid libsqlite3-dev lld bzip2 libbz2-dev libssl-dev libffi-dev libgdbm-dev libncursesw5-dev libreadline-dev libtk8.6 libgdbm-compat-dev liblzma-dev libgl1-mesa-dev
         pip install --upgrade pip
-        pip install buildozer cython git+https://github.com
-
+        pip install buildozer cython kivy kivymd
     - name: Build with Buildozer
-      run: |
-        buildozer android release
-
-    - name: Upload APK Artifact
+      run: buildozer android release
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: offline-assistant-apk
